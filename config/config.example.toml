@@ -1,0 +1,108 @@
+# XAUUSD Smart Trading Assistant - configuration
+# Copy to config.toml. Credentials (Telegram) never go here; see secrets.example.toml.
+# Values tagged PLACEHOLDER were not specified by the user: please set real values.
+
+[strategy]
+timeframe = "M5"
+
+[strategy.ma]
+period = 20
+method = "EMA"            # "EMA" or "SMA"
+warmup_multiplier = 5     # no signals until period * this many bars are seen
+
+[strategy.pin_bar]
+wick_body_ratio = 2.0           # dominant wick >= ratio * body
+opposite_wick_max_frac = 0.30   # opposite wick <= fraction of candle range
+close_zone_frac = 0.33          # "clear rejection": close in outer fraction of range
+min_body_frac = 0.05            # body floor (fraction of range) for zero-body candles
+min_range = 0.0                 # PLACEHOLDER: minimum candle range, price units
+
+[strategy.engulfing]
+strict = false                  # false: open >= prev close and close <= prev open
+min_body = 0.0                  # minimum engulfing body, price units
+
+[strategy.trend]
+slope_filter_enabled = true
+slope_lookback = 5              # bars; slope = (MA[t] - MA[t-k]) / k
+min_slope = 0.0                 # price units per bar
+htf_enabled = false             # higher-timeframe filter (closed bars only)
+htf_timeframe = "M15"
+htf_slope_lookback = 3
+
+[strategy.zone]
+mode = "ATR"                    # "PRICE" | "PERCENT" | "ATR"
+value = 0.30                    # PLACEHOLDER: zone half-width (0.30 x ATR)
+atr_period = 14
+
+[strategy.scenario_a]           # trend + MA retest
+enabled = true
+prior_bars_below = 3
+close_tolerance = 0.0
+touch_lookback = 1
+
+[strategy.scenario_b]           # break + pullback + rejection
+enabled = true
+breakout_buffer = 0.0
+max_pullback_bars = 10
+require_close_reenter = true
+close_tolerance = 0.0
+touch_lookback = 1
+
+[validation]
+symbol_pattern = 'XAUUSD[\.\w]*'
+expected_timeframe = "M5"
+max_spread_points = 50.0        # PLACEHOLDER
+
+[signals]
+cooldown_bars = 3               # PLACEHOLDER; 0 disables
+
+[mt5]
+terminal_path = ""                # e.g. 'C:\\Program Files\\MetaTrader 5\\terminal64.exe'; empty = running terminal
+server_utc_offset_hours = 0.0     # broker server time minus UTC (e.g. 2.0 winter / 3.0 summer).
+                                  # Update after DST changes; the app warns when it looks wrong.
+
+[feed]
+poll_seconds = 2.0
+history_bars = 500
+min_history_bars = 120
+reconnect_initial_seconds = 2.0
+reconnect_max_seconds = 60.0
+backfill_retries = 3              # polls to wait for missing candles before giving up
+daily_break_max_minutes = 90      # longest gap accepted as the daily market break ...
+daily_break_window_start = "21:00"  # ... if inside this window (HH:MM, may cross midnight)
+daily_break_window_end = "01:00"
+weekend_max_hours = 80            # gaps across Saturday up to this long count as weekend closure
+stale_tick_seconds = 180.0
+
+[telegram]                        # token and chat id are NOT stored here (see secrets.example.toml)
+enabled = false
+timeout_seconds = 10.0
+max_attempts = 5                  # sends per alert before giving up
+retry_initial_seconds = 2.0
+retry_max_seconds = 60.0
+queue_size = 100
+
+[sound]
+enabled = true
+buy_sound = "assets/sounds/buy.wav"
+sell_sound = "assets/sounds/sell.wav"
+
+[display]
+timezone = "local"                # "local", "UTC" or an IANA name such as "Europe/Berlin"
+
+[monitor]
+max_signal_age_seconds = 600.0    # drop alerts for candles that closed longer ago than this
+post_gap_suppress_bars = 20       # suppress signals for N candles after a data hole
+history_size = 500
+
+[backtest]                        # used by `python -m xauassist.backtest`; every value is an assumption
+point_size = 0.01                 # price units per broker point (XAUUSD, 2 digits)
+assumed_spread_points = 20.0      # PLACEHOLDER: spread used when the data has none
+slippage_points = 0.0             # PLACEHOLDER: adverse slippage on entry and stop fills
+sl_buffer = 0.0                   # PLACEHOLDER: stop beyond the confirmation candle high/low
+r_multiple = 1.0                  # PLACEHOLDER: take profit = r_multiple x risk
+max_hold_bars = 48                # PLACEHOLDER: time exit and MFE/MAE horizon, in candles
+min_risk = 0.0                    # skip signals whose stop distance is below this (price units)
+same_candle = "STOP_FIRST"        # one candle reaches stop and target: STOP_FIRST (pessimistic) or TARGET_FIRST
+exploration_fraction = 0.6        # chronological split: explore / validate / untouched test
+validation_fraction = 0.2

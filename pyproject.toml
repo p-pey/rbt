@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "xauassist"
+version = "0.1.0"
+description = "XAUUSD MA20 signal assistant (alerts only, no trade execution)"
+requires-python = ">=3.11"
+dependencies = ["tzdata; sys_platform == 'win32'"]
+
+[project.optional-dependencies]
+dev = ["pytest", "mypy", "ruff"]
+mt5 = ["MetaTrader5; sys_platform == 'win32'"]
+secrets = ["keyring"]
+gui = ["PySide6-Essentials"]
+build = ["pyinstaller"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src", "tests"]
+
+[tool.mypy]
+strict = true
+exclude = ["^scripts/"]
+mypy_path = ["src", "tests"]
+files = ["src", "tests"]
+explicit_package_bases = true
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["E501"]
+"src/xauassist/backtest/report.py" = ["E501"]  # long presentation strings
+"src/xauassist/backtest/cli.py" = ["E501"]

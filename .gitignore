@@ -1,0 +1,7 @@
+secrets.toml
+*.db
+__pycache__/
+.venv/
+dist/
+build/
+logs/
